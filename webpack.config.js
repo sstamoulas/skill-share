@@ -1,18 +1,38 @@
 var path = require('path')
-var webpack = require('webpack')
+var VueLoaderPlugin = require('vue-loader/lib/plugin')
+//require dotenv and optionally pass path/to/.env
+var DotEnv = require('dotenv').config({path: __dirname + '/.env'}),
+      webpack = require('webpack'),
+
+//Then define a new webpack plugin which reads the .env variables at bundle time
+dotEnv = new webpack.DefinePlugin({
+  "process.env": {
+    'BASE_URL': JSON.stringify(process.env.BASE_URL),
+    'PORT': JSON.stringify(process.env.PORT)
+  }
+});
 
 module.exports = {
-  entry: './views/main.js',
+  entry: {
+    index: './views/main.js',
+  },
   output: {
-    path: path.resolve(__dirname, './public'),
+    path: path.resolve(__dirname, 'public'),
     publicPath: '/public/',
     filename: 'build.js'
   },
+  plugins:[
+    new webpack.ProvidePlugin({   
+      jQuery: 'jquery',
+      $: 'jquery',
+      jquery: 'jquery'
+    }),
+    new VueLoaderPlugin(),
+    dotEnv
+  ],
   resolve: {
-    extensions: ['.js', '.vue'],
     alias: {
-      'vue$': 'vue/dist/vue.esm.js',
-      'public': path.resolve(__dirname, './public')
+      'vue': 'vue/dist/vue.common.js'
     }
   },
   module: {
@@ -21,56 +41,52 @@ module.exports = {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
-          loaders: {
+         loaders: {
+           'scss': 'vue-style-loader!css-loader!sass-loader',
+           'sass': 'vue-style-loader!css-loader!sass-loader?indentedSyntax'
+         }
+        }
+      },
+      {
+        test: /\.(scss)$/,
+        use: [
+          {
+            // Adds CSS to the DOM by injecting a `<style>` tag
+            loader: 'style-loader'
+          },
+          {
+            // Interprets `@import` and `url()` like `import/require()` and will resolve them
+            loader: 'css-loader'
+          },
+          {
+            // Loader for webpack to process CSS with PostCSS
+            loader: 'postcss-loader',
+            options: {
+              plugins: function () {
+                return [
+                  require('autoprefixer')
+                ];
+              }
+            }
+          },
+          {
+            // Loads a SASS/SCSS file and compiles it to CSS
+            loader: 'sass-loader'
           }
-          // other vue-loader options go here
-        }
+        ]
       },
       {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/
+        test: /\.(png|svg|jpg|gif)$/,
+        use: [
+          'file-loader'
+        ]
       },
       {
-        test: /\.(png|jpg|gif|svg)$/,
-        loader: 'file-loader',
-        options: {
-          objectAssign: 'Object.assign'
-        }
-      },
-      {
-        test: /\.styl$/,
-        loader: ['style-loader', 'css-loader', 'stylus-loader']
+        test: /\.(woff|woff2|eot|ttf|otf)$/,
+        use: [
+          'file-loader'
+        ]
       }
     ]
   },
-  devServer: {
-    historyApiFallback: true,
-    noInfo: true
-  },
-  performance: {
-    hints: false
-  },
-  devtool: '#eval-source-map'
-}
-
-if (process.env.NODE_ENV === 'production') {
-  module.exports.devtool = '#source-map'
-  // http://vue-loader.vuejs.org/en/workflow/production.html
-  module.exports.plugins = (module.exports.plugins || []).concat([
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"'
-      }
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      compress: {
-        warnings: false
-      }
-    }),
-    new webpack.LoaderOptionsPlugin({
-      minimize: true
-    })
-  ])
 }

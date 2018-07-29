@@ -1,29 +1,18 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
-import usersPage from '../pages/users.vue'
-import homePage from '../pages/home.vue'
+import UsersPage from '../pages/Users.vue'
+import HomePage from '../pages/Home.vue'
 
 Vue.use(Router)
 
 const router = new Router ({
-  root: '/home',
+  root: '/',
   routes: 
   [
-    {
-      path: '/users',
-      name: 'users',
-      component: usersPage
-    },
-    {
-      path: '/home',
-      name: 'home',
-      component: homePage
-    },
-    {
-      path: '/',
-      redirect: '/home'
-    }
+    { path: '/users', name: 'users', component: UsersPage },
+    { path: '/', name: 'home', component: HomePage },
+    { path: '/', redirect: '/' }
   ]
 })
 
